@@ -68,6 +68,7 @@ class PhysicalDisk:
 			array[i] = write_data[i]
 		self.data[block_num].data = array
 
+
 	def __repr__(self):
 		return (str(self.num_free_blocks) + " free out of " + str(self.num_blocks) + ". { " + str(self.free_blocks) + " }")
 
@@ -104,7 +105,7 @@ class VirtualDisk:
 	def read(self, block_num):
 		if(self.num_blocks > block_num):
 			print("ERROR: Block index out of range")
-			return ""
+			return None
 		b = find_physical_block(self.mapping, block_num)
 		return b[0].read(b[1])
 
@@ -115,11 +116,12 @@ class VirtualDisk:
 		b = find_physical_block(self.mapping, block_num)
 		b[0].write(b[1])		
 
+# TODO: test (> or >=)
 def find_physical_block(mapping, block_num):
 	i = block_num
 	for m in mapping:
-		if(m[2] >= i):
-			return (m[0], m[1] + i)
+		if(m[2] > i):
+			return (m[0], m[1] + i)		# disk_no, block_num
 		i -= m[2]
 
 def allocate_best_block(space, disks):
