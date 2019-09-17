@@ -59,19 +59,30 @@ class PhysicalDisk:
 				else:
 					print("ERROR: Something wrong happened. Check allocate_best_block call")
 
+	def read(self, block_num):
+		return ''.join(self.data[block_num])
+
+	def write(self, block_num, write_data):
+		array = ['' for i in range(100)]
+		for i in range(len(write_data)):
+			array[i] = write_data[i]
+		self.data[block_num].data = array
+
 	def __repr__(self):
 		return (str(self.num_free_blocks) + " free out of " + str(self.num_blocks) + ". { " + str(self.free_blocks) + " }")
 
 class VirtualDisk:
-	virtual_disks = []
+	virtual_disks = {}
 
 	def __init__(self, Id, num_blocks, disks):
+		if(self.virtual_disks.has_key(Id)):
+			print("ERROR: Disk with Id=" + str(Id) + " already exists")
+			return
 		self.Id = Id
 		self.disks = disks
 		self.num_blocks = num_blocks
-		self.physicalDisks = disks
 		self.mapping = self.allocate()	# tuples of (disk_no, start, size)
-		self.virtual_disks.append(self)
+		self.virtual_disks[Id] = self
 
 	def allocate(self):
 		mapping = []
@@ -81,14 +92,35 @@ class VirtualDisk:
 			return
 		to_allocate = self.num_blocks 
 		while(to_allocate>0):
-			alloc = allocate_best_block(to_allocate, disks)
+			alloc = allocate_best_block(to_allocate, self.disks)
 			mapping.append(alloc)
 			to_allocate -= alloc[2]
 		return mapping
 
 	def remove(self):
 		for m in self.mapping:
-			PhysicalDisk.physical_disks[m[0]].free(m[1], m[2])
+			self.disks[m[0]].free(m[1], m[2])
+
+	def read(self, block_num):
+		if(self.num_blocks > block_num):
+			print("ERROR: Block index out of range")
+			return ""
+		b = find_physical_block(self.mapping, block_num)
+		return b[0].read(b[1])
+
+	def write(self, block_num, write_data):
+		if(self.num_blocks > block_num):
+			print("ERROR: Block index out of range")
+			return ""
+		b = find_physical_block(self.mapping, block_num)
+		b[0].write(b[1])		
+
+def find_physical_block(mapping, block_num):
+	i = block_num
+	for m in mapping:
+		if(m[2] >= i):
+			return (m[0], m[1] + i)
+		i -= m[2]
 
 def allocate_best_block(space, disks):
 	max_less = (-1, -1, -1)		# (disk_no, start, size)
@@ -110,29 +142,40 @@ def CreateDisk(Id, num_blocks):
 	return VirtualDisk(Id, num_blocks, disks)		
 
 def DeleteDisk(Id):
-	for d in VirtualDisk.virtual_disks:
-		if(d.Id==Id):
-			d.remove()	
+	VirtualDisk.virtual_disks[Id].remove()
 
-b1 = Block()
+def Read(Id, block_num):
+	return VirtualDisk.virtual_disks[Id].read(block_num)
+
+def Write(Id, block_num, write_data):
+	VirtualDisk.virtual_disks[Id].write(block_num, write_data)
+
+# b1 = Block()
 
 INFINITY = 10000000
 disk_sizes = [200, 300]
 disks = [PhysicalDisk(x) for x in disk_sizes]
 
-print(disks[0]),
-print(", "),
-print(disks[1])
+# print(disks[0]),
+# print(", "),
+# print(disks[1])
 
-d1 = CreateDisk(1, 400)
-d1 = CreateDisk(2, 50)
-# d1.test_changes()
+# d1 = CreateDisk(1, 400)
+# d1 = CreateDisk(2, 50)
+# # d1.test_changes()
 
-DeleteDisk(1)
 
-print(disks[0]),
-print(", "),
-print(disks[1])
+# print(disks[0]),
+# print(", "),
+# print(disks[1])
 
-print()
-# print(len(VirtualDisk.virtual_disks))
+# DeleteDisk(1)
+# # print(VirtualDisk.virtual_disks.has_key(1))
+
+# print(disks[0]),
+# print(", "),
+# print(disks[1])
+
+
+# print()
+# # print(len(VirtualDisk.virtual_disks))
