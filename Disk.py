@@ -2,18 +2,22 @@ class Block():
 	def __init__(self):
 		self.data = ['' for i in range(100)]
 
+
+# check Block() - 2 instances
 class PhysicalDisk:
 	physical_disks = []
 
 	def __init__(self, num_blocks):
 		self.num_blocks = num_blocks
-		self.data = [Block for i in range(num_blocks)]
+		self.data = [Block() for i in range(num_blocks)]
 		self.free_blocks = [(0, num_blocks)]	# free space in tuples (start, size)
 		self.num_free_blocks = num_blocks
 		self.physical_disks.append(self)
 
 	def free(self, start, num_blocks):
 		self.num_free_blocks += num_blocks
+		for i in range(start, start+num_blocks):
+			self.data[i] = Block()
 		# check if it is already empty
 		ind = 0
 		left = False
@@ -60,7 +64,7 @@ class PhysicalDisk:
 					print("ERROR: Something wrong happened. Check allocate_best_block call")
 
 	def read(self, block_num):
-		return ''.join(self.data[block_num])
+		return ''.join(self.data[block_num].data)
 
 	def write(self, block_num, write_data):
 		array = ['' for i in range(100)]
@@ -68,6 +72,9 @@ class PhysicalDisk:
 			array[i] = write_data[i]
 		self.data[block_num].data = array
 
+	def clean(self, start, size):
+		for i in range(start, start+size):
+			self.data[i] = Block()
 
 	def __repr__(self):
 		return (str(self.num_free_blocks) + " free out of " + str(self.num_blocks) + ". { " + str(self.free_blocks) + " }")
@@ -103,18 +110,18 @@ class VirtualDisk:
 			self.disks[m[0]].free(m[1], m[2])
 
 	def read(self, block_num):
-		if(self.num_blocks > block_num):
+		if(self.num_blocks <= block_num):
 			print("ERROR: Block index out of range")
 			return None
 		b = find_physical_block(self.mapping, block_num)
-		return b[0].read(b[1])
+		return self.disks[b[0]].read(b[1])
 
 	def write(self, block_num, write_data):
-		if(self.num_blocks > block_num):
+		if(self.num_blocks <= block_num):
 			print("ERROR: Block index out of range")
 			return ""
 		b = find_physical_block(self.mapping, block_num)
-		b[0].write(b[1])		
+		self.disks[b[0]].write(b[1], write_data)		
 
 # TODO: test (> or >=)
 def find_physical_block(mapping, block_num):

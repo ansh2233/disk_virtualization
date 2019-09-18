@@ -104,7 +104,6 @@ def CreateDisk(Id, num_blocks):
 def DeleteDisk(Id):
 	VirtualReplicaDisk.virtual_replica_disks[Id].remove()
 	
-
 def Read(Id, block_num):
 	return VirtualReplicaDisk.virtual_replica_disks[Id].read(block_num)
 
