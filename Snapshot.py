@@ -20,7 +20,7 @@ class VirtualSnapshotDisk(VirtualDisk):
 		return checkpnt_num
 
 	def write(self, block_num, write_data, monitor_this_write = True):
-		VirtualDisk.write(self, block_num, write_data)
+		VirtualDisk.write(self, block_num, write_data, False)
 		if monitor_this_write:
 			self.commands.append((block_num, write_data))
 
@@ -51,26 +51,3 @@ def Rollback(Id, checkpnt_num):
 	VirtualSnapshotDisk.virtual_snapshot_disks[Id].Rollback(checkpnt_num)
 
 
-print(disks[0]),
-print(", "),
-print(disks[1])
-
-d1 = CreateDisk(1, 200)
-
-print(disks[0]),
-print(", "),
-print(disks[1])
-
-Write(1, 0, "hello")
-Write(1, 100, "hello 100")
-
-c = Checkpoint(1)
-
-print("Read block 100: " + str(Read(1, 100)))
-
-Write(1, 100, "hello 100 new")
-
-print("Read block 100: " + str(Read(1, 100)))
-
-Rollback(1, c)
-print("Read block 100 after rollback: " + str(Read(1, 100)))
