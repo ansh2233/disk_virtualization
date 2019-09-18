@@ -15,7 +15,7 @@ class PhysicalReplicaDisk(PhysicalDisk):
 	def read(self, block_num, turn):
 		if turn==1:
 			rand = random.randint(1, 100)
-			if rand<10 or True:
+			if rand<10:
 				self.flag(block_num)
 				return None
 		return ''.join(self.data[block_num].data)
